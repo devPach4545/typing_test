@@ -18,4 +18,5 @@ Dev's Typing Test is a simple Python application that allows users to practice t
 4. Install the required dependencies (Tkinter is usually included with Python).
 5. Run the application by executing the following command: ctrl+f5
 
-##Here is a screen shot:
+## Here is a screen shot:
+![image](https://github.com/devPach4545/typing_test/assets/117800801/83d3b84b-b5d5-4f5d-9be5-40fe506c7886)
