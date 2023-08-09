@@ -10,82 +10,77 @@ data_loaded = False
 data = ""
 
 def get_data():
-    global text_data
+    global text_data,start_time
     lines = open('data.txt').read().splitlines()
     for _ in range(10):
         myline = random.choice(lines)    
     text_data = Text()
     text_data.insert("1.0",myline)
-    text_data.config(height=8, width=100,font=("Arial",15,"bold"))
-    text_data.place(relx=0.5,rely=0.3,anchor=CENTER)
+    text_data.config(height=8, width=100,font=("Arial",15,"bold"),background="red")
+    text_data.place(relx=0.5,rely=0.2,anchor=CENTER)
+    start_time = time.time()
+    
    
     
-def highlight_text_blue(event):
-    current_index = text_input_area.index(INSERT)
-    text = text_input_area.get("1.0", "end-1c")
-    text_input_area.tag_remove("highlight", "1.0", "end")
-    for word in text.split():
-        start_index = text.find(word)
-        end_index = start_index + len(word)
-        text_input_area.tag_add("highlight", f"1.0 + {start_index} chars", f"1.0 + {end_index} chars")
-    text_input_area.tag_configure("highlight", background="blue")
 
-
-def highlight_text_red(event):
-    current_index = text_input_area.index(INSERT)
-    text = text_input_area.get("1.0", "end-1c")
-    text_input_area.tag_remove("highlight", "1.0", "end")
-    for word in text.split():
-        start_index = text.find(word)
-        end_index = start_index + len(word)
-        text_input_area.tag_add("highlight", f"1.0 + {start_index} chars", f"1.0 + {end_index} chars")
-    text_input_area.tag_configure("highlight", background="red")
 
 def reset_data():
    text_data.delete("1.0",END)
    text_input_area.delete("1.0",END)
+   update_speed_labels(0, 0)
 
 #addint the text input area
-text_input_area = Text(height=10,width=100,font=("Helvetica",15,"bold"))
+text_input_area = Text(height=10,width=100,font=("Helvetica",15,"bold"),background="orange")
 text_input_area.place(relx=0.5,rely=0.5,anchor=CENTER)
 
-start_image = PhotoImage(file="/Users/dhaivatpachchigar/Documents/python_personal_projects/typing_test/start_button.png")
-start_button = Button(image=start_image, highlightthickness=0, command=lambda: [get_data(), start_typing_time()])
+start_image = PhotoImage(file="start_button.png")
+start_button = Button(image=start_image, highlightthickness=0, command=get_data)
 start_button.place(relx=0.2, rely=0.8, anchor=CENTER)
 
 
-reset_image = PhotoImage(file="/Users/dhaivatpachchigar/Documents/python_personal_projects/typing_test/reset.png")
+reset_image = PhotoImage(file="reset.png")
 reset_button = Button(image=reset_image,highlightthickness=0,command=reset_data)
 reset_button.place(relx=0.8,rely=0.8,anchor=CENTER)
 
 
+def update_speed_labels(cpm, wpm):
+    speed_label.config(text=f"Speed: \n{cpm:.2f} CPM\n{wpm:.2f} WPM")    
+
 
 def compare_text(event):
- 
-
     user_input = text_input_area.get("1.0", "end-1c")
     original_text = text_data.get("1.0", "end-1c")
 
+    # Remove any previous highlighting
+    text_input_area.tag_remove("highlight", "1.0", "end")
+
     # Compare user input and original text character by character
+    correct_words = 0
     for i, (user_char, original_char) in enumerate(zip(user_input, original_text)):
-        if user_char == original_char:
-            text_input_area.tag_add("highlight", f"1.0 + {i} chars", f"1.0 + {i + 1} chars")
-            text_input_area.tag_configure("highlight", background="blue")
-        else:
-            text_input_area.tag_add("highlight", f"1.0 + {i} chars", f"1.0 + {i + 1} chars")
-            text_input_area.tag_configure("highlight", background="red")
-    if user_input == original_text:
-        end_time = time.time()
-        typing_time = end_time - start_time
-        typing_speed = len(original_text) / (typing_time / 60)  # Characters per minute
-        typing_speed_label.config(text=f"Typing Speed: {typing_speed:.2f} characters per minute")
+        tag_name = "highlight_correct" if user_char == original_char else "highlight_wrong"
+        tag_bg_color = "blue" if user_char == original_char else "red"
+        text_input_area.tag_add(tag_name, f"1.0 + {i} chars", f"1.0 + {i + 1} chars")
+        text_input_area.tag_configure(tag_name, background=tag_bg_color)
+
+        if user_char == original_char and user_char.isspace():
+            correct_words += 1
+
+    elapsed_time = time.time() - start_time
+
+    # Calculate CPM and WPM based on correct words
+    cpm = (correct_words * 5) / elapsed_time * 60  # Assuming an average word length of 5 characters
+    wpm = cpm / 5  # Assuming an average word length of 5 characters
+    update_speed_labels(cpm, wpm)
+
+   
+
     
 
 text_input_area.bind("<Key>", compare_text)
-def start_typing_time():
-    global start_time
-    start_time = time.time()
-typing_speed_label = Label(text="", font=("Helvetica", 12))
-typing_speed_label.place(relx=0.5, rely=0.9, anchor=CENTER)
-    
+
+speed_label = Label(text="Speed: \n0.00 CPS\n WPM")
+speed_label.place(relx= 0.5, rely=0.8,anchor=CENTER)
+
+
+
 window.mainloop()
